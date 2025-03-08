@@ -1,0 +1,66 @@
+
+x-variables:
+  database_url: "postgres://postgres:postgres@postgres:5432/postgres"
+  celery_broker_url: "amqp://guest:guest@rabbitmq:5672//"
+  ports:
+    valkey: "6379:6379"
+    postgres: "5432:5432"
+    rabbitmq:
+      - "5672:5672"
+      - "15672:15672"
+
+x-common: &common-settings
+  build: .
+  depends_on:
+    - valkey
+    - rabbitmq
+    - postgres
+  volumes:
+    - ./:/app
+  env_file: .env.dev
+  environment:
+    - DATABASE_URL=${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/postgres}
+    - CELERY_BROKER_URL=${CELERY_BROKER_URL:-amqp://guest:guest@rabbitmq:5672//}
+
+services:
+  worker:
+    <<: *common-settings
+    command: celery -A project worker -l INFO
+    deploy:
+      mode: replicated
+      replicas: 1
+
+  scheduler:
+    <<: *common-settings
+    command: celery -A project beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
+
+  valkey:
+    image: valkey/valkey:7.2-alpine
+    command: valkey-server /usr/local/etc/valkey/valkey.conf
+    volumes:
+      - ./.data/valkey:/data
+    ports:
+      - ${VALKEY_PORT:-6379:6379}
+
+  postgres:
+    image: postgres:15.3-alpine
+    deploy:
+      resources:
+        limits:
+          cpus: "3"
+    ports:
+      - ${POSTGRES_PORT:-5432:5432}
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./.data/postgres/:/var/lib/postgresql/data/
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    volumes:
+      - ./.data/rabbitmq:/var/lib/rabbitmq/mnesia/
+    ports:
+      - "5672:5672"
+      - "15672:15672"

@@ -1,0 +1,29 @@
+
+# dependencies
+.data/
+.venv/
+
+# misc
+.DS_Store
+*.pem
+.ruff_cache/
+
+# local env files
+.env.*
+!.env.example
+
+
+*.mp4
+*.mo
+*.swp
+*.log
+
+__pycache__/
+*.pyc
+*.sqlite
+*.sql
+
+media/
+static/admin
+static/unfold
+
