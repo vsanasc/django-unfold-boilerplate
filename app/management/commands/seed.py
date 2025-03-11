@@ -4,7 +4,7 @@ from django.db import transaction
 
 import yaml
 
-BASE_PATH = "app/managment/seed"
+BASE_PATH = "app/management/seed"
 
 
 class Command(BaseCommand):
