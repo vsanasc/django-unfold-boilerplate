@@ -36,7 +36,7 @@ services:
 
   valkey:
     image: valkey/valkey:7.2-alpine
-    command: valkey-server /usr/local/etc/valkey/valkey.conf
+    command: valkey-server
     volumes:
       - ./.data/valkey:/data
     ports:
